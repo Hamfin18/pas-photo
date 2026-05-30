@@ -1,0 +1,12 @@
+import os
+
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+IS_PRODUCTION = APP_ENV == "production"
+
+DEFAULT_OUTPUT_WIDTH = 300
+DEFAULT_OUTPUT_HEIGHT = 400
+MIN_OUTPUT_SIZE = 50
+MAX_OUTPUT_SIZE = 4000
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/jpg"}
+DEFAULT_BG_HEX = "#FFFFFF"
