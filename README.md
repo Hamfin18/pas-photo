@@ -80,6 +80,27 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 On Linux/macOS, activate the venv with `source .venv/bin/activate` and use `export APP_ENV=development` instead of `set`.
 
+### Deploy to VPS (CI/CD)
+
+Pushing to **`main`** runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): GitHub Actions SSHs into the server, runs `git pull`, installs Python deps, and restarts `pas-photo.service`.
+
+**One-time setup** — add repository secrets in GitHub (**Settings → Secrets and variables → Actions**):
+
+| Secret | Value |
+|--------|--------|
+| `VPS_HOST` | Server IP or hostname (e.g. `202.10.36.95`) |
+| `VPS_USER` | SSH user (e.g. `root`) |
+| `VPS_SSH_KEY` | Private key for deploy (see below) |
+| `VPS_PORT` | Optional; default `22` |
+
+On the VPS, use a **deploy-only** SSH key (public key in `~/.ssh/authorized_keys`). Put the matching **private** key in `VPS_SSH_KEY`.
+
+Manual deploy on the server:
+
+```bash
+bash /var/www/pas-photo/scripts/deploy.sh
+```
+
 ---
 
 ## Tech stack
