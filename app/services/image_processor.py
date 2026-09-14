@@ -1,8 +1,12 @@
 import io
 import re
 
-from PIL import Image
-from rembg import remove
+from PIL import Image, ImageOps
+from rembg import new_session, remove
+
+# Lighter model + single session — important on ~1 GB RAM VPS
+_REMBG_SESSION = new_session("u2netp")
+_MAX_REMBG_SIDE = 800
 
 from app.config import (
     DEFAULT_OUTPUT_HEIGHT,
@@ -104,6 +108,22 @@ def _crop_box_for_aspect(
     return (left, top, right, bottom)
 
 
+def _bytes_for_rembg(image_bytes: bytes) -> bytes:
+    img = Image.open(io.BytesIO(image_bytes))
+    img = ImageOps.exif_transpose(img)
+    w, h = img.size
+    longest = max(w, h)
+    if longest > _MAX_REMBG_SIDE:
+        scale = _MAX_REMBG_SIDE / longest
+        img = img.resize(
+            (max(1, int(w * scale)), max(1, int(h * scale))),
+            Image.Resampling.LANCZOS,
+        )
+    buf = io.BytesIO()
+    img.convert("RGB").save(buf, format="JPEG", quality=90, optimize=True)
+    return buf.getvalue()
+
+
 def process_passport_photo(
     image_bytes: bytes,
     bg_hex: str,
@@ -114,7 +134,8 @@ def process_passport_photo(
     bg_rgb = parse_hex_color(bg_hex)
     target_aspect = width / height
 
-    cutout_bytes = remove(image_bytes)
+    rembg_input = _bytes_for_rembg(image_bytes)
+    cutout_bytes = remove(rembg_input, session=_REMBG_SESSION)
     img = Image.open(io.BytesIO(cutout_bytes)).convert("RGBA")
 
     bbox = _subject_bbox(img)
