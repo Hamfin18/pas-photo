@@ -18,7 +18,7 @@ Useful for ID cards, visas, job applications, or studio prints—without manual 
 
 **Processing pipeline (short):**
 
-1. Upload a JPG → validate type & size (max 5 MB)
+1. Upload a JPG or PNG → validate type & size (max 5 MB)
 2. `rembg` produces an image with an alpha channel (no background)
 3. Detect subject bounds → crop to target aspect ratio + padding
 4. Resize to chosen dimensions → composite onto the background color
@@ -60,7 +60,7 @@ Useful for ID cards, visas, job applications, or studio prints—without manual 
 
 1. Open the home page (opens automatically with `run.bat`, or go to `http://localhost:8000`).
 2. **Output size** — enter width & height (px), or click a preset: `300×400`, `354×472`, `600×800`.
-3. **Photo** — choose a **JPG/JPEG** file (max 5 MB). Other formats are not supported.
+3. **Photo** — choose a **JPG/JPEG or PNG** file (max 5 MB).
 4. **Background color** — use the color picker or type a hex value (e.g. `#FFFFFF`).
 5. Click **Buat pas foto** (Create passport photo) — wait a few seconds for AI processing.
 6. Preview the result, then click **Unduh JPG** (Download JPG).
@@ -153,7 +153,7 @@ For programmatic integration or testing (development mode: interactive docs at *
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `photo` | file | Yes | JPG/JPEG, max 5 MB |
+| `photo` | file | Yes | JPG/JPEG or PNG, max 5 MB |
 | `bg_color` | string | No | Hex `#RRGGBB` (default `#FFFFFF`) |
 | `width` | int | No | Output width 50–4000 px (default `300`) |
 | `height` | int | No | Output height 50–4000 px (default `400`) |
@@ -189,7 +189,7 @@ curl -X POST "http://localhost:8000/api/process" \
 - **First run is slower** — the AI model must load (and download if missing).
 - **Best photos:** clear face, good contrast with the original background, even lighting; avoid hair/background colors too close to skin tone.
 - **Crop quality** follows subject detection from the alpha channel; complex shots (fine hair, shadows) may need a retry or a new photo.
-- **JPG only** — convert HEIC/PNG from your phone to JPEG first.
+- **Input:** JPG or PNG — output is always JPG for print.
 - **Privacy:** photos are processed on your local server; nothing is sent to third-party services except the one-time `rembg` model download.
 
 ---

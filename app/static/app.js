@@ -110,8 +110,12 @@ form.addEventListener("submit", async (e) => {
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase();
-  if (!["jpg", "jpeg"].includes(ext) || file.type !== "image/jpeg") {
-    showStatus("Hanya file JPG/JPEG.", "error");
+  const allowedExt = ["jpg", "jpeg", "png"];
+  const allowedTypes = ["image/jpeg", "image/png"];
+  const extOk = allowedExt.includes(ext);
+  const typeOk = !file.type || allowedTypes.includes(file.type);
+  if (!extOk || !typeOk) {
+    showStatus("Hanya file JPG/JPEG atau PNG.", "error");
     return;
   }
 

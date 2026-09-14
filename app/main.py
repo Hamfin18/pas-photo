@@ -20,6 +20,15 @@ from app.services.image_processor import (
 
 STATIC_DIR = Path(__file__).parent / "static"
 
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def _is_valid_upload_image(raw: bytes) -> bool:
+    if raw.startswith(b"\xff\xd8"):
+        return True
+    return raw.startswith(_PNG_SIGNATURE)
+
+
 app = FastAPI(
     title="Pas Foto",
     description="Ubah foto jadi format 3x4 dengan background custom",
@@ -42,12 +51,6 @@ async def process_photo(
     width: int = Form(default=DEFAULT_OUTPUT_WIDTH),
     height: int = Form(default=DEFAULT_OUTPUT_HEIGHT),
 ):
-    if photo.content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail="Hanya file JPG/JPEG yang diperbolehkan.",
-        )
-
     raw = await photo.read()
     if not raw:
         raise HTTPException(status_code=400, detail="File kosong.")
@@ -57,8 +60,19 @@ async def process_photo(
             detail=f"Ukuran file maksimal {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
         )
 
-    if not raw.startswith(b"\xff\xd8"):
-        raise HTTPException(status_code=400, detail="File bukan JPEG yang valid.")
+    if photo.content_type not in ALLOWED_CONTENT_TYPES and not _is_valid_upload_image(
+        raw
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Hanya file JPG/JPEG atau PNG yang diperbolehkan.",
+        )
+
+    if not _is_valid_upload_image(raw):
+        raise HTTPException(
+            status_code=400,
+            detail="File bukan JPEG atau PNG yang valid.",
+        )
 
     try:
         parse_hex_color(bg_color)
