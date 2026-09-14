@@ -30,8 +30,8 @@ def _is_valid_upload_image(raw: bytes) -> bool:
 
 
 app = FastAPI(
-    title="Pas Foto",
-    description="Ubah foto jadi format 3x4 dengan background custom",
+    title="Passport Photo",
+    description="Turn photos into 3×4 passport format with a custom background",
     docs_url=None if IS_PRODUCTION else "/docs",
     redoc_url=None if IS_PRODUCTION else "/redoc",
 )
@@ -53,11 +53,11 @@ async def process_photo(
 ):
     raw = await photo.read()
     if not raw:
-        raise HTTPException(status_code=400, detail="File kosong.")
+        raise HTTPException(status_code=400, detail="File is empty.")
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(
             status_code=400,
-            detail=f"Ukuran file maksimal {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
+            detail=f"Maximum file size is {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
         )
 
     if photo.content_type not in ALLOWED_CONTENT_TYPES and not _is_valid_upload_image(
@@ -65,13 +65,13 @@ async def process_photo(
     ):
         raise HTTPException(
             status_code=400,
-            detail="Hanya file JPG/JPEG atau PNG yang diperbolehkan.",
+            detail="Only JPG/JPEG or PNG files are allowed.",
         )
 
     if not _is_valid_upload_image(raw):
         raise HTTPException(
             status_code=400,
-            detail="File bukan JPEG atau PNG yang valid.",
+            detail="File is not a valid JPEG or PNG.",
         )
 
     try:
@@ -85,7 +85,7 @@ async def process_photo(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Gagal memproses foto: {exc}",
+            detail=f"Failed to process photo: {exc}",
         ) from exc
 
     filename = f"pasfoto-{width}x{height}.jpg"

@@ -50,13 +50,13 @@ function validateSize() {
   const height = parseInt(heightInput.value, 10);
 
   if (!Number.isFinite(width) || !Number.isFinite(height)) {
-    return "Lebar dan tinggi harus angka.";
+    return "Width and height must be numbers.";
   }
   if (width < MIN_SIZE || width > MAX_SIZE) {
-    return `Lebar harus ${MIN_SIZE}–${MAX_SIZE} px.`;
+    return `Width must be ${MIN_SIZE}–${MAX_SIZE} px.`;
   }
   if (height < MIN_SIZE || height > MAX_SIZE) {
-    return `Tinggi harus ${MIN_SIZE}–${MAX_SIZE} px.`;
+    return `Height must be ${MIN_SIZE}–${MAX_SIZE} px.`;
   }
   return null;
 }
@@ -105,7 +105,7 @@ form.addEventListener("submit", async (e) => {
 
   const file = photoInput.files[0];
   if (!file) {
-    showStatus("Pilih foto dulu.", "error");
+    showStatus("Please choose a photo first.", "error");
     return;
   }
 
@@ -115,7 +115,7 @@ form.addEventListener("submit", async (e) => {
   const extOk = allowedExt.includes(ext);
   const typeOk = !file.type || allowedTypes.includes(file.type);
   if (!extOk || !typeOk) {
-    showStatus("Hanya file JPG/JPEG atau PNG.", "error");
+    showStatus("Only JPG/JPEG or PNG files are allowed.", "error");
     return;
   }
 
@@ -126,7 +126,7 @@ form.addEventListener("submit", async (e) => {
   formData.append("height", String(height));
 
   submitBtn.disabled = true;
-  showStatus("Memproses… background removal butuh beberapa detik.", "info");
+  showStatus("Processing… background removal may take a few seconds.", "info");
 
   try {
     const res = await fetch("/api/process", {
@@ -157,7 +157,7 @@ form.addEventListener("submit", async (e) => {
     previewEl.hidden = false;
     hideStatus();
   } catch (err) {
-    showStatus(err.message || "Gagal memproses foto.", "error");
+    showStatus(err.message || "Failed to process photo.", "error");
   } finally {
     submitBtn.disabled = false;
   }

@@ -1,32 +1,32 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pas Foto 3×4</title>
+  <title>Passport Photo 3×4</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <main class="card">
     <header>
-      <h1>Pas Foto</h1>
-      <p>Upload JPG atau PNG, atur ukuran output (px), pilih warna background.</p>
+      <h1>Passport Photo</h1>
+      <p>Upload JPG or PNG, set output size (px), and choose a background color.</p>
     </header>
 
     <form id="form">
       <fieldset class="field size-field">
-        <legend>Ukuran hasil (pixel)</legend>
+        <legend>Output size (pixels)</legend>
         <div class="size-row">
           <label>
-            <span>Lebar</span>
+            <span>Width</span>
             <input type="number" id="outputWidth" name="width" min="50" max="4000" value="300" required>
           </label>
           <label>
-            <span>Tinggi</span>
+            <span>Height</span>
             <input type="number" id="outputHeight" name="height" min="50" max="4000" value="400" required>
           </label>
         </div>
-        <p class="hint">Contoh pas foto 3×4: 300×400, 354×472, 600×800</p>
+        <p class="hint">Example 3×4 passport sizes: 300×400, 354×472, 600×800</p>
         <div class="presets">
           <button type="button" class="preset-btn" data-w="300" data-h="400">300×400</button>
           <button type="button" class="preset-btn" data-w="354" data-h="472">354×472</button>
@@ -35,27 +35,27 @@
       </fieldset>
 
       <label class="field">
-        <span>Foto (JPG/PNG, max 5 MB)</span>
+        <span>Photo (JPG/PNG, max 5 MB)</span>
         <input type="file" id="photo" name="photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
       </label>
 
       <label class="field">
-        <span>Warna background</span>
+        <span>Background color</span>
         <div class="color-row">
           <input type="color" id="colorPicker" value="#ffffff">
           <input type="text" id="bgColor" name="bg_color" value="#FFFFFF" maxlength="7" placeholder="#FFFFFF">
         </div>
       </label>
 
-      <button type="submit" id="submitBtn">Buat pas foto</button>
+      <button type="submit" id="submitBtn">Create passport photo</button>
     </form>
 
     <p id="status" class="status" hidden></p>
 
     <section id="preview" class="preview" hidden>
-      <h2>Hasil</h2>
-      <img id="resultImg" alt="Hasil pas foto">
-      <a id="downloadLink" class="btn-secondary" download>Unduh JPG</a>
+      <h2>Result</h2>
+      <img id="resultImg" alt="Passport photo result">
+      <a id="downloadLink" class="btn-secondary" download>Download JPG</a>
     </section>
   </main>
 

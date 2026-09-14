@@ -21,7 +21,7 @@ HEX_PATTERN = re.compile(r"^#?([0-9A-Fa-f]{6})$")
 def parse_hex_color(hex_color: str) -> tuple[int, int, int]:
     match = HEX_PATTERN.match(hex_color.strip())
     if not match:
-        raise ValueError("Warna hex tidak valid. Gunakan format #RRGGBB.")
+        raise ValueError("Invalid hex color. Use format #RRGGBB.")
     value = match.group(1)
     return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4))
 
@@ -29,11 +29,11 @@ def parse_hex_color(hex_color: str) -> tuple[int, int, int]:
 def parse_output_size(width: int, height: int) -> tuple[int, int]:
     if width < MIN_OUTPUT_SIZE or width > MAX_OUTPUT_SIZE:
         raise ValueError(
-            f"Lebar harus antara {MIN_OUTPUT_SIZE}–{MAX_OUTPUT_SIZE} px."
+            f"Width must be between {MIN_OUTPUT_SIZE}–{MAX_OUTPUT_SIZE} px."
         )
     if height < MIN_OUTPUT_SIZE or height > MAX_OUTPUT_SIZE:
         raise ValueError(
-            f"Tinggi harus antara {MIN_OUTPUT_SIZE}–{MAX_OUTPUT_SIZE} px."
+            f"Height must be between {MIN_OUTPUT_SIZE}–{MAX_OUTPUT_SIZE} px."
         )
     return width, height
 

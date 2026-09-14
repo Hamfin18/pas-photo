@@ -62,8 +62,8 @@ Useful for ID cards, visas, job applications, or studio prints—without manual 
 2. **Output size** — enter width & height (px), or click a preset: `300×400`, `354×472`, `600×800`.
 3. **Photo** — choose a **JPG/JPEG or PNG** file (max 5 MB).
 4. **Background color** — use the color picker or type a hex value (e.g. `#FFFFFF`).
-5. Click **Buat pas foto** (Create passport photo) — wait a few seconds for AI processing.
-6. Preview the result, then click **Unduh JPG** (Download JPG).
+5. Click **Create passport photo** — wait a few seconds for AI processing.
+6. Preview the result, then click **Download JPG**.
 
 Your last used dimensions are saved in the browser’s `localStorage` so presets persist after refresh.
 
