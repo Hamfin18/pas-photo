@@ -7,6 +7,7 @@
   --accent-hover: #2563eb;
   --error: #f87171;
   --border: #2d3a4f;
+  --ok: #34d399;
 }
 
 * {
@@ -20,19 +21,20 @@ body {
   background: radial-gradient(ellipse at top, #1e293b 0%, var(--bg) 55%);
   color: var(--text);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 1.5rem;
 }
 
 .card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.75rem;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  margin: 1rem 0 2rem;
 }
 
 header h1 {
@@ -67,13 +69,15 @@ header p {
   font-size: 0.95rem;
 }
 
-.size-field {
+.size-field,
+.color-field {
   border: none;
   padding: 0;
   margin: 0 0 1rem;
 }
 
-.size-field legend {
+.size-field legend,
+.color-field legend {
   padding: 0;
   margin-bottom: 0.4rem;
   font-size: 0.85rem;
@@ -108,15 +112,17 @@ header p {
 
 .preset-btn {
   width: auto;
-  flex: 1;
+  flex: 1 1 calc(50% - 0.25rem);
   min-width: 5.5rem;
   padding: 0.45rem 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: var(--bg);
   color: var(--muted);
   border: 1px solid var(--border);
   margin-top: 0;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .preset-btn:hover {
@@ -145,8 +151,32 @@ header p {
   flex: 1;
 }
 
+.color-presets {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.color-preset {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  flex: none;
+}
+
+.color-preset:hover {
+  border-color: var(--accent);
+  transform: scale(1.08);
+}
+
 button,
-.btn-secondary {
+.btn-secondary,
+.btn-primary,
+.btn-ghost {
   display: inline-block;
   width: 100%;
   text-align: center;
@@ -159,17 +189,21 @@ button,
   border: none;
 }
 
-button {
+button[type="submit"],
+.btn-primary {
   background: var(--accent);
   color: #fff;
   margin-top: 0.25rem;
 }
 
-button:hover:not(:disabled) {
+button[type="submit"]:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
 }
 
-button:disabled {
+button:disabled,
+.btn-primary:disabled,
+.btn-ghost:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -185,6 +219,28 @@ button:disabled {
   background: rgba(59, 130, 246, 0.12);
 }
 
+.btn-ghost {
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.crop-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.crop-actions button {
+  margin-top: 0;
+}
+
 .status {
   margin: 1rem 0 0;
   font-size: 0.9rem;
@@ -196,6 +252,115 @@ button:disabled {
 
 .status.info {
   color: var(--muted);
+}
+
+/* Progress / spinner */
+.progress {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(15, 20, 25, 0.55);
+  text-align: center;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 0.75rem;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.progress-elapsed {
+  margin: 0.35rem 0 0;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.progress-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Crop editor */
+.crop-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.crop-section h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.crop-viewport {
+  margin-top: 0.75rem;
+  width: 100%;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+  aspect-ratio: 3 / 4;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.crop-viewport.dragging {
+  cursor: grabbing;
+}
+
+.crop-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crop-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  transform-origin: center center;
+  transition: transform 0.05s linear;
+}
+
+.zoom-field {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.zoom-field input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
 }
 
 .preview {
@@ -215,4 +380,20 @@ button:disabled {
   display: block;
   border-radius: 4px;
   border: 1px solid var(--border);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 420px) {
+  body {
+    padding: 0.75rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .preset-btn {
+    flex: 1 1 100%;
+  }
 }

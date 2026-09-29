@@ -7,12 +7,15 @@ from rembg import new_session, remove
 # Lighter model + single session — important on ~1 GB RAM VPS
 _REMBG_SESSION = new_session("u2netp")
 _MAX_REMBG_SIDE = 800
+REMBG_READY = True
 
 from app.config import (
     DEFAULT_OUTPUT_HEIGHT,
     DEFAULT_OUTPUT_WIDTH,
     MAX_OUTPUT_SIZE,
+    MAX_ZOOM,
     MIN_OUTPUT_SIZE,
+    MIN_ZOOM,
 )
 
 HEX_PATTERN = re.compile(r"^#?([0-9A-Fa-f]{6})$")
@@ -36,6 +39,23 @@ def parse_output_size(width: int, height: int) -> tuple[int, int]:
             f"Height must be between {MIN_OUTPUT_SIZE}–{MAX_OUTPUT_SIZE} px."
         )
     return width, height
+
+
+def parse_crop_adjust(
+    offset_x: float = 0.0,
+    offset_y: float = 0.0,
+    zoom: float = 1.0,
+) -> tuple[float, float, float]:
+    try:
+        ox = float(offset_x)
+        oy = float(offset_y)
+        z = float(zoom)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("offset_x, offset_y, and zoom must be numbers.") from exc
+    ox = max(-1.0, min(1.0, ox))
+    oy = max(-1.0, min(1.0, oy))
+    z = max(MIN_ZOOM, min(MAX_ZOOM, z))
+    return ox, oy, z
 
 
 def _subject_bbox(img: Image.Image) -> tuple[int, int, int, int]:
@@ -108,6 +128,54 @@ def _crop_box_for_aspect(
     return (left, top, right, bottom)
 
 
+def _adjusted_crop_box(
+    bbox: tuple[int, int, int, int],
+    img_size: tuple[int, int],
+    target_aspect: float,
+    offset_x: float = 0.0,
+    offset_y: float = 0.0,
+    zoom: float = 1.0,
+) -> tuple[int, int, int, int]:
+    """Auto crop, then apply zoom (in) and pan offsets in [-1, 1]."""
+    img_w, img_h = img_size
+    left, top, right, bottom = _crop_box_for_aspect(bbox, img_size, target_aspect)
+    base_cx = (left + right) / 2
+    base_cy = (top + bottom) / 2
+    bw = max(1, right - left)
+    bh = max(1, bottom - top)
+
+    new_bw = max(1.0, bw / zoom)
+    new_bh = max(1.0, bh / zoom)
+    half_w = new_bw / 2
+    half_h = new_bh / 2
+
+    # Pan room relative to image bounds for the zoomed crop
+    min_cx = half_w
+    max_cx = max(half_w, img_w - half_w)
+    min_cy = half_h
+    max_cy = max(half_h, img_h - half_h)
+
+    # offset ±1 moves from base center toward the pan extremes
+    span_x = max(0.0, max_cx - min_cx)
+    span_y = max(0.0, max_cy - min_cy)
+    # Prefer panning around the auto-crop center; clamp to bounds
+    cx = base_cx + offset_x * (span_x / 2 if span_x else 0)
+    cy = base_cy + offset_y * (span_y / 2 if span_y else 0)
+    cx = min(max(cx, min_cx), max_cx)
+    cy = min(max(cy, min_cy), max_cy)
+
+    left = int(round(cx - half_w))
+    top = int(round(cy - half_h))
+    right = int(round(cx + half_w))
+    bottom = int(round(cy + half_h))
+
+    left = max(0, min(left, img_w - 1))
+    top = max(0, min(top, img_h - 1))
+    right = max(left + 1, min(right, img_w))
+    bottom = max(top + 1, min(bottom, img_h))
+    return (left, top, right, bottom)
+
+
 def _bytes_for_rembg(image_bytes: bytes) -> bytes:
     img = Image.open(io.BytesIO(image_bytes))
     img = ImageOps.exif_transpose(img)
@@ -124,24 +192,37 @@ def _bytes_for_rembg(image_bytes: bytes) -> bytes:
     return buf.getvalue()
 
 
-def process_passport_photo(
-    image_bytes: bytes,
-    bg_hex: str,
-    width: int = DEFAULT_OUTPUT_WIDTH,
-    height: int = DEFAULT_OUTPUT_HEIGHT,
-) -> bytes:
-    width, height = parse_output_size(width, height)
-    bg_rgb = parse_hex_color(bg_hex)
-    target_aspect = width / height
-
+def make_cutout(image_bytes: bytes) -> bytes:
+    """Run rembg and return RGBA PNG bytes (no disk write)."""
     rembg_input = _bytes_for_rembg(image_bytes)
     cutout_bytes = remove(rembg_input, session=_REMBG_SESSION)
     img = Image.open(io.BytesIO(cutout_bytes)).convert("RGBA")
+    out = io.BytesIO()
+    img.save(out, format="PNG", optimize=True)
+    return out.getvalue()
 
+
+def compose_from_cutout(
+    cutout_bytes: bytes,
+    bg_hex: str,
+    width: int = DEFAULT_OUTPUT_WIDTH,
+    height: int = DEFAULT_OUTPUT_HEIGHT,
+    offset_x: float = 0.0,
+    offset_y: float = 0.0,
+    zoom: float = 1.0,
+) -> bytes:
+    """Crop/composite an RGBA cutout into a JPEG passport photo."""
+    width, height = parse_output_size(width, height)
+    bg_rgb = parse_hex_color(bg_hex)
+    offset_x, offset_y, zoom = parse_crop_adjust(offset_x, offset_y, zoom)
+    target_aspect = width / height
+
+    img = Image.open(io.BytesIO(cutout_bytes)).convert("RGBA")
     bbox = _subject_bbox(img)
-    crop_box = _crop_box_for_aspect(bbox, img.size, target_aspect)
+    crop_box = _adjusted_crop_box(
+        bbox, img.size, target_aspect, offset_x, offset_y, zoom
+    )
     cropped = img.crop(crop_box)
-
     resized = cropped.resize((width, height), Image.Resampling.LANCZOS)
 
     background = Image.new("RGB", (width, height), bg_rgb)
@@ -150,3 +231,19 @@ def process_passport_photo(
     output = io.BytesIO()
     background.save(output, format="JPEG", quality=92, optimize=True)
     return output.getvalue()
+
+
+def process_passport_photo(
+    image_bytes: bytes,
+    bg_hex: str,
+    width: int = DEFAULT_OUTPUT_WIDTH,
+    height: int = DEFAULT_OUTPUT_HEIGHT,
+    offset_x: float = 0.0,
+    offset_y: float = 0.0,
+    zoom: float = 1.0,
+) -> bytes:
+    """One-shot: rembg cutout + compose (optional manual crop adjust)."""
+    cutout = make_cutout(image_bytes)
+    return compose_from_cutout(
+        cutout, bg_hex, width, height, offset_x, offset_y, zoom
+    )
